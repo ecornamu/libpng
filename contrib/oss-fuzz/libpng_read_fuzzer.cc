@@ -21,6 +21,8 @@
 
 #define PNG_INTERNAL
 #include "png.h"
+#include "pnglibconf.h"
+#include "pngconf.h"
 
 #define PNG_CLEANUP \
   if(png_handler.png_ptr) \
@@ -95,7 +97,6 @@ void default_free(png_structp, png_voidp ptr) {
 static const int kPngHeaderSize = 8;
 
 void check_metadata(const PngObjectHandler &png_handler) {
-
   png_uint_32 width = png_get_image_width(png_handler.png_ptr, png_handler.info_ptr);
   png_uint_32 height = png_get_image_height(png_handler.png_ptr, png_handler.info_ptr);
 
@@ -106,7 +107,6 @@ void check_metadata(const PngObjectHandler &png_handler) {
   int compression_type = png_get_compression_type(png_handler.png_ptr, png_handler.info_ptr);
   int filter_type = png_get_filter_type(png_handler.png_ptr, png_handler.info_ptr);
   int interlace_type = png_get_interlace_type(png_handler.png_ptr, png_handler.info_ptr);
-
 
 
   // --- METADATA RETRIEVAL ---
@@ -146,8 +146,8 @@ void check_metadata(const PngObjectHandler &png_handler) {
 
   // Retrieve pHYs chunk (resolution)
   if (PNG_INFO_pHYs) {
-    png_uint_32 res_x;
-    png_uint_32 res_y;
+    png_uint_32 res_x = uint1;
+    png_uint_32 res_y = uint2;
     int unit_type = int1;
     png_get_pHYs(png_handler.png_ptr, png_handler.info_ptr,
                  &res_x, &res_y, &unit_type);
@@ -173,7 +173,6 @@ void check_metadata(const PngObjectHandler &png_handler) {
   // Retrieve cHRM chunk (chromaticity)
 #ifdef PNG_cHRM_SUPPORTED
   if (PNG_INFO_cHRM) {
-
 
     png_get_cHRM(png_handler.png_ptr, png_handler.info_ptr,
                  &white_x, &white_y, &red_x, &red_y,
@@ -396,13 +395,13 @@ if (PNG_INFO_bKGD) {
   #endif
 }
 
+
 // Entry point for LibFuzzer.
 // Roughly follows the libpng book example:
 // http://www.libpng.org/pub/png/book/chapter13.html
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   if (size < kPngHeaderSize) {
     return 0;
-
   }
 
   if (size > 100000) return 0;  // Skip overly large files
@@ -422,6 +421,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
   png_handler.png_ptr = png_create_read_struct
     (PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+
   if (!png_handler.png_ptr) {
     return 0;
   }
@@ -468,6 +468,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   }
 
   png_uint_32 width, height;
+  int filter_type;
 
   // Before allocations:
   const size_t kMaxAlloc = 100*1024*1024; // 100MB
