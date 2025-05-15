@@ -1,0 +1,3 @@
+[libfuzzer]
+dict = png.dict
+max_len = -1

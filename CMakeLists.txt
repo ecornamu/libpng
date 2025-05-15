@@ -563,6 +563,7 @@ set(pngfix_sources
 )
 set(png_fix_itxt_sources
     contrib/tools/png-fix-itxt.c
+        contrib/oss-fuzz/libpng_read_fuzzer.cc
 )
 
 if(MSVC OR (WIN32 AND (CMAKE_C_COMPILER_ID MATCHES "Clang")))
